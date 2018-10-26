@@ -2,7 +2,14 @@
   var canvas = (this.__canvas = new fabric.Canvas("c", { selection: false }));
   fabric.Object.prototype.originX = fabric.Object.prototype.originY = "center";
 
-  function makeCircle(left, top, line1, line2, line3, line4) {
+  function makeCircle(
+    left,
+    top,
+    inComingLine,
+    outGoingLine,
+    trisector1,
+    trisector2
+  ) {
     var c = new fabric.Circle({
       left: left,
       top: top,
@@ -32,14 +39,14 @@
       hasControls: false,
       hasBorders: false
     });
-    g.line1 = line1;
-    g.line2 = line2;
-    g.line3 = line3;
-    g.line4 = line4;
-    g.line1.endPoint = g;
-    g.line2.startPoint = g;
-    g.line3.startPoint = g;
-    g.line4.startPoint = g;
+    g.inComingLine = inComingLine;
+    g.outGoingLine = outGoingLine;
+    g.trisector1 = trisector1;
+    g.trisector2 = trisector2;
+    g.inComingLine.endPoint = g;
+    g.outGoingLine.startPoint = g;
+    g.trisector1.startPoint = g;
+    g.trisector2.startPoint = g;
     g.angle0 = 90;
     canvas.add(c, t, g);
     return g;
@@ -77,60 +84,71 @@
   var a = [makeRandomNumber(800), makeRandomNumber(800)];
   var b = [makeRandomNumber(800), makeRandomNumber(800)];
   var c = [makeRandomNumber(800), makeRandomNumber(800)];
-  var line1 = makeLine([...a, ...b]),
-    line2 = makeLine([...b, ...c]),
-    line3 = makeLine([...c, ...a]);
-  var line4 = makeLine([...a, ...b], "blue");
-  var line5 = makeLine([...b, ...c], "blue");
-  var line6 = makeLine([...c, ...a], "blue");
-  var line7 = makeLine([...a, ...b], "blue");
-  var line8 = makeLine([...b, ...c], "blue");
-  var line9 = makeLine([...c, ...a], "blue");
+  var triangleLine1 = makeLine([...a, ...b], "orange");
+  var triangleLine2 = makeLine([...b, ...c], "yellow");
+  var triangleLine3 = makeLine([...c, ...a], "pink");
+  var trisector11 = makeLine([...a, ...b], "blue");
+  var trisector12 = makeLine([...b, ...c], "blue");
+  var trisector13 = makeLine([...c, ...a], "blue");
+  var trisector21 = makeLine([...a, ...b], "brown");
+  var trisector22 = makeLine([...b, ...c], "brown");
+  var trisector23 = makeLine([...c, ...a], "brown");
 
   var p1 = makeCircle(
-    line1.get("x1"),
-    line1.get("y1"),
-    line3,
-    line1,
-    line4,
-    line7
+    triangleLine1.get("x1"),
+    triangleLine1.get("y1"),
+    triangleLine3,
+    triangleLine1,
+    trisector11,
+    trisector21
   );
   var p2 = makeCircle(
-    line2.get("x1"),
-    line2.get("y1"),
-    line1,
-    line2,
-    line5,
-    line8
+    triangleLine2.get("x1"),
+    triangleLine2.get("y1"),
+    triangleLine1,
+    triangleLine2,
+    trisector12,
+    trisector22
   );
   var p3 = makeCircle(
-    line3.get("x1"),
-    line3.get("y1"),
-    line2,
-    line3,
-    line6,
-    line9
+    triangleLine3.get("x1"),
+    triangleLine3.get("y1"),
+    triangleLine2,
+    triangleLine3,
+    trisector13,
+    trisector23
   );
   var p4 = makeStaticCircle();
   var p5 = makeStaticCircle();
   var p6 = makeStaticCircle();
 
   function calculateAngle(p) {
-    p.line1 && p.line1.set({ x2: p.left, y2: p.top });
-    p.line2 && p.line2.set({ x1: p.left, y1: p.top });
-    var angle1 = angle(p.left, p.top, p.line1.get("x1"), p.line1.get("y1"));
-    var angle2 = angle(p.left, p.top, p.line2.get("x2"), p.line2.get("y2"));
-    p.line3.set({
+    p.inComingLine && p.inComingLine.set({ x2: p.left, y2: p.top });
+    p.outGoingLine && p.outGoingLine.set({ x1: p.left, y1: p.top });
+    var angle1 = angle(
+      p.left,
+      p.top,
+      p.inComingLine.get("x1"),
+      p.inComingLine.get("y1")
+    );
+    var angle2 = angle(
+      p.left,
+      p.top,
+      p.outGoingLine.get("x2"),
+      p.outGoingLine.get("y2")
+    );
+
+    p.trisector1.set({
       x1: p.left,
       y1: p.top,
-      x2: Math.cos(adjustThirdRad(angle1, angle2)) * 200 + p.left,
-      y2: Math.sin(adjustThirdRad(angle1, angle2)) * 200 + p.top
+      x2: Math.cos(adjustThirdRad3(angle1, angle2)) * -1 * 200 + p.left,
+      y2: Math.sin(adjustThirdRad3(angle1, angle2)) * -1 * 200 + p.top
     });
-    p.line4.set({
+    p.trisector2.set({
       x1: p.left,
       y1: p.top,
-      x2: Math.cos(adjustThirdRad(angle1, angle2, 2)) * 200 + p.left,
-      y2: Math.sin(adjustThirdRad(angle1, angle2, 2)) * 200 + p.top
+      x2: Math.cos(adjustThirdRad3(angle1, angle2, 2)) * -1 * 200 + p.left,
+      y2: Math.sin(adjustThirdRad3(angle1, angle2, 2)) * -1 * 200 + p.top
     });
     var radDiff = normalizeRad(angle1 - angle2);
     p.angle0 = Math.round(toDeg(radDiff) * 10) / 10;
@@ -138,24 +156,35 @@
     p.angle2 = angle2;
     var text = p.getObjects("text")[0];
     text.set("text", `${p.angle0.toString()}`);
-    // var test =
-    //   round(smallerRad(angle1, angle2) + radDiff, 2) ==
-    //   round(biggerRad(angle1, angle2), 2);
-    //, ${angle1 - angle2}, ${angle1}, ${angle2}
-    // console.log(p.angle0, angle1, angle2)
-    /**, ${round(angle1, 2).toString()}, ${round(angle2, 2).toString()} */
   }
   canvas.on("object:moving", function(e) {
-    renderAngle();
+    calculateAngle(e.target);
+    // renderAngle();
   });
   function adjustThirdRad(angle1, angle2, num = 1) {
     var diff = angle1 - angle2;
     if (diff > Math.PI) {
-      return smallerRad(angle1, angle2) - (normalizeRad(diff) / 3) * num;
+      return biggerRad(angle1, angle2) + (normalizeRad(diff) / 3) * num;
     } else if (diff > 0) {
       return smallerRad(angle1, angle2) + (diff / 3) * num;
     } else if (diff < -Math.PI) {
-      return biggerRad(angle1, angle2) + (normalizeRad(diff) / 3) * num;
+      return smallerRad(angle1, angle2) - (normalizeRad(diff) / 3) * num;
+    } else {
+      return biggerRad(angle1, angle2) + (diff / 3) * num;
+    }
+  }
+  function adjustThirdRad3(angle1, angle2, num = 1) {
+    var diff = angle1 - angle2;
+    if (diff > Math.PI) {
+      return normalizeRad(
+        biggerRad(angle1, angle2) + (normalizeRad(diff) / 3) * num
+      );
+    } else if (diff > 0) {
+      return smallerRad(angle1, angle2) + (diff / 3) * num;
+    } else if (diff < -Math.PI) {
+      return normalizeRad(
+        smallerRad(angle1, angle2) - (normalizeRad(diff) / 3) * num
+      );
     } else {
       return biggerRad(angle1, angle2) + (diff / 3) * num;
     }
@@ -195,12 +224,10 @@
     return a < b ? b : a;
   }
   function angle(cx, cy, ex, ey) {
-    var dy = ey - cy;
-    var dx = ex - cx;
-    // var theta = Math.abs(Math.atan2(dy, dx)); // range (-PI, PI]
+    var dy = (ey - cy) * -1;
+    var dx = (ex - cx) * -1;
+    // more paper intuitive range calculation, instead of html position that increaeses downwards
     var theta = Math.atan2(dy, dx); // range (-PI, PI]
-    // var deg = (theta * 180) / Math.PI; // rads to degs, range (-180, 180]
-    //if (theta < 0) theta = 360 + theta; // range [0, 360)
     return theta;
   }
   renderAngle();
@@ -208,9 +235,9 @@
     calculateAngle(p1);
     calculateAngle(p2);
     calculateAngle(p3);
-    // renderCentralPoints(line1, p4);
-    // renderCentralPoints(line2, p5);
-    // renderCentralPoints(line3, p6);
+    // renderCentralPoints(triangleLine1, p4);
+    // renderCentralPoints(outGoingLine, p5);
+    // renderCentralPoints(trisector1, p6);
     canvas.renderAll();
   }
   function renderCentralPoints(line, c) {
@@ -222,26 +249,34 @@
     // console.table({ s1, s2, s3, s4 });
     var left =
       (endPoint.top - startPoint.top) /
-      (Math.tan(
-        adjustThirdRad2(s1, startPoint.angle2, startPoint.angle1, "start")
-      ) -
-        Math.tan(adjustThirdRad2(s1, endPoint.angle1, endPoint.angle2, "end")));
+      (Math.tan(adjustThirdRad(startPoint.angle1, startPoint.angle2, 2)) -
+        Math.tan(adjustThirdRad(endPoint.angle1, endPoint.angle2)));
     var top =
-      (endPoint.left - startPoint.left) /
-      (Math.atan(
-        adjustThirdRad2(s1, startPoint.angle1, startPoint.angle2, "start")
-      ) -
-        Math.atan(
-          adjustThirdRad2(s1, endPoint.angle1, endPoint.angle2, "end")
-        ));
+      (endPoint.left - startPoint.left) *
+      (Math.tan(adjustThirdRad(startPoint.angle1, startPoint.angle2, 2)) -
+        Math.tan(adjustThirdRad(endPoint.angle1, endPoint.angle2)));
+    // var left =
+    //   (endPoint.top - startPoint.top) /
+    //   (Math.tan(
+    //     adjustThirdRad2(s1, startPoint.angle2, startPoint.angle1, "start")
+    //   ) -
+    //     Math.tan(adjustThirdRad2(s1, endPoint.angle1, endPoint.angle2, "end")));
+    // var top =
+    //   (endPoint.left - startPoint.left) /
+    //   (Math.atan(
+    //     adjustThirdRad2(s1, startPoint.angle1, startPoint.angle2, "start")
+    //   ) -
+    //     Math.atan(
+    //       adjustThirdRad2(s1, endPoint.angle1, endPoint.angle2, "end")
+    //     ));end
     c.set({ left, top });
-    startPoint.line4.set({
+    startPoint.trisector1.set({
       x2: left,
       y2: top,
       x1: startPoint.left,
       y1: startPoint.top
     });
-    endPoint.line3.set({
+    endPoint.trisector2.set({
       x2: left,
       y2: top,
       x1: endPoint.left,
