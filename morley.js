@@ -160,9 +160,9 @@
   canvas.on("object:moving", function(e) {
     // calculateAngle(e.target);
     renderAngle();
-    renderCentralPoints(triangleLine1, p4);
-    renderCentralPoints(triangleLine2, p5);
-    renderCentralPoints(triangleLine3, p6);
+    // renderCentralPoints(triangleLine1, p4);
+    // renderCentralPoints(triangleLine2, p5);
+    // renderCentralPoints(triangleLine3, p6);
     canvas.renderAll();
   });
   function adjustThirdRad(angle1, angle2, num = 1) {
@@ -239,9 +239,9 @@
     calculateAngle(p1);
     calculateAngle(p2);
     calculateAngle(p3);
-    // renderCentralPoints(triangleLine1, p4);
-    // renderCentralPoints(triangleLine2, p5);
-    // renderCentralPoints(triangleLine3, p6);
+    renderCentralPoints(triangleLine1, p4);
+    renderCentralPoints(triangleLine2, p5);
+    renderCentralPoints(triangleLine3, p6);
     // canvas.renderAll();
   }
   function adjustThirdRad4(firstAngle, secondAngle) {
@@ -265,8 +265,8 @@
       startPoint.outGoingAngle,
       startPoint.incomingAngle
     );
-    var a1 = Math.tan(e1) * -1;
-    var a2 = Math.tan(e2) * -1;
+    var a1 = Math.tan(e1);
+    var a2 = Math.tan(e2);
     // var cos1 = Math.cos(e1);
     // var sin1 = Math.sin(e1) * -1;
     // var cos2 = Math.cos(e2);
@@ -286,11 +286,11 @@
     // });
 
     var left =
-      (startPoint.top - endPoint.top - a2 * (startPoint.left - endPoint.left)) /
-        (a2 - a1) +
+      (startPoint.top - endPoint.top + a2 * (startPoint.left - endPoint.left)) /
+        (a1 - a2) +
       startPoint.left;
     var top =
-      ((startPoint.top - endPoint.top) / a2 -
+      ((startPoint.top - endPoint.top) / a2 +
         (startPoint.left - endPoint.left)) /
         (1 / a1 - 1 / a2) +
       startPoint.top;
