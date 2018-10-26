@@ -250,10 +250,10 @@
       return (firstAngle + normalizeRad(diff) / 3);
     } else if (diff > 0) {
       var result = firstAngle - diff / 3;
-      console.table({ firstAngle, secondAngle, diff, result });
+      // console.table({ firstAngle, secondAngle, diff, result });
       return result;
     } else if (diff < -Math.PI) {
-      return normalizeRad(firstAngle - normalizeRad(diff) / 3);
+      return (firstAngle - normalizeRad(diff) / 3);
     } else {
       return firstAngle - diff / 3;
     }
@@ -265,47 +265,47 @@
       startPoint.outGoingAngle,
       startPoint.incomingAngle
     );
-    var a1 = Math.tan(e1);
-    var a2 = Math.tan(e2);
-    var cos1 = Math.cos(e1);
-    var sin1 = Math.sin(e1) * -1;
-    var cos2 = Math.cos(e2);
-    var sin2 = Math.sin(e2) * -1;
+    var a1 = Math.tan(e1) * -1;
+    var a2 = Math.tan(e2) * -1;
+    // var cos1 = Math.cos(e1);
+    // var sin1 = Math.sin(e1) * -1;
+    // var cos2 = Math.cos(e2);
+    // var sin2 = Math.sin(e2) * -1;
 
-    endPoint.trisector1.set({
-      x1: endPoint.left,
-      y1: endPoint.top,
-      x2: cos1 * 200 + endPoint.left,
-      y2: sin1 * 200 + endPoint.top
-    });
-    startPoint.trisector2.set({
-      x1: startPoint.left,
-      y1: startPoint.top,
-      x2: cos2 * 200 + startPoint.left,
-      y2: sin2 * 200 + startPoint.top
-    });
-
-    // var left =
-    //   (startPoint.top - endPoint.top - a2 * (startPoint.left - endPoint.left)) /
-    //     (a2 - a1) +
-    //   startPoint.left;
-    // var top =
-    //   ((startPoint.top - endPoint.top) / a2 -
-    //     (startPoint.left - endPoint.left)) /
-    //     (1 / a1 - 1 / a2) +
-    //   startPoint.top;
-    // c.set({ left, top });
-    // startPoint.trisector2.set({
-    //   x2: left,
-    //   y2: top,
-    //   x1: startPoint.left,
-    //   y1: startPoint.top
-    // });
     // endPoint.trisector1.set({
-    //   x2: left,
-    //   y2: top,
     //   x1: endPoint.left,
-    //   y1: endPoint.top
+    //   y1: endPoint.top,
+    //   x2: cos1 * 200 + endPoint.left,
+    //   y2: sin1 * 200 + endPoint.top
     // });
+    // startPoint.trisector2.set({
+    //   x1: startPoint.left,
+    //   y1: startPoint.top,
+    //   x2: cos2 * 200 + startPoint.left,
+    //   y2: sin2 * 200 + startPoint.top
+    // });
+
+    var left =
+      (startPoint.top - endPoint.top - a2 * (startPoint.left - endPoint.left)) /
+        (a2 - a1) +
+      startPoint.left;
+    var top =
+      ((startPoint.top - endPoint.top) / a2 -
+        (startPoint.left - endPoint.left)) /
+        (1 / a1 - 1 / a2) +
+      startPoint.top;
+    c.set({ left, top });
+    startPoint.trisector2.set({
+      x2: left,
+      y2: top,
+      x1: startPoint.left,
+      y1: startPoint.top
+    });
+    endPoint.trisector1.set({
+      x2: left,
+      y2: top,
+      x1: endPoint.left,
+      y1: endPoint.top
+    });
   }
 })();
