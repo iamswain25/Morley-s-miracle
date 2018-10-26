@@ -85,8 +85,8 @@
   var b = [makeRandomNumber(800), makeRandomNumber(800)];
   var c = [makeRandomNumber(800), makeRandomNumber(800)];
   var triangleLine1 = makeLine([...a, ...b], "orange");
-  var triangleLine2 = makeLine([...b, ...c], "yellow");
-  var triangleLine3 = makeLine([...c, ...a], "pink");
+  var triangleLine2 = makeLine([...b, ...c]);
+  var triangleLine3 = makeLine([...c, ...a]);
   var trisector11 = makeLine([...a, ...b], "blue");
   var trisector12 = makeLine([...b, ...c], "blue");
   var trisector13 = makeLine([...c, ...a], "blue");
@@ -125,41 +125,45 @@
   function calculateAngle(p) {
     p.inComingLine && p.inComingLine.set({ x2: p.left, y2: p.top });
     p.outGoingLine && p.outGoingLine.set({ x1: p.left, y1: p.top });
-    var angle1 = angle(
+    var incomingAngle = angle(
       p.left,
       p.top,
       p.inComingLine.get("x1"),
       p.inComingLine.get("y1")
     );
-    var angle2 = angle(
+    var outGoingAngle = angle(
       p.left,
       p.top,
       p.outGoingLine.get("x2"),
       p.outGoingLine.get("y2")
     );
-
-    p.trisector1.set({
-      x1: p.left,
-      y1: p.top,
-      x2: Math.cos(adjustThirdRad3(angle1, angle2)) * -1 * 200 + p.left,
-      y2: Math.sin(adjustThirdRad3(angle1, angle2)) * -1 * 200 + p.top
-    });
-    p.trisector2.set({
-      x1: p.left,
-      y1: p.top,
-      x2: Math.cos(adjustThirdRad3(angle1, angle2, 2)) * -1 * 200 + p.left,
-      y2: Math.sin(adjustThirdRad3(angle1, angle2, 2)) * -1 * 200 + p.top
-    });
-    var radDiff = normalizeRad(angle1 - angle2);
+    // console.table({ incomingAngle, outGoingAngle });
+    // p.trisector1.set({
+    //   x1: p.left,
+    //   y1: p.top,
+    //   x2: Math.cos(adjustThirdRad3(angle1, angle2)) * -1 * 200 + p.left,
+    //   y2: Math.sin(adjustThirdRad3(angle1, angle2)) * -1 * 200 + p.top
+    // });
+    // p.trisector2.set({
+    //   x1: p.left,
+    //   y1: p.top,
+    //   x2: Math.cos(adjustThirdRad3(angle1, angle2, 2)) * -1 * 200 + p.left,
+    //   y2: Math.sin(adjustThirdRad3(angle1, angle2, 2)) * -1 * 200 + p.top
+    // });
+    var radDiff = normalizeRad(incomingAngle - outGoingAngle);
     p.angle0 = Math.round(toDeg(radDiff) * 10) / 10;
-    p.angle1 = angle1;
-    p.angle2 = angle2;
+    p.incomingAngle = incomingAngle;
+    p.outGoingAngle = outGoingAngle;
     var text = p.getObjects("text")[0];
     text.set("text", `${p.angle0.toString()}`);
   }
   canvas.on("object:moving", function(e) {
-    calculateAngle(e.target);
-    // renderAngle();
+    // calculateAngle(e.target);
+    renderAngle();
+    renderCentralPoints(triangleLine1, p4);
+    renderCentralPoints(triangleLine2, p5);
+    renderCentralPoints(triangleLine3, p6);
+    canvas.renderAll();
   });
   function adjustThirdRad(angle1, angle2, num = 1) {
     var diff = angle1 - angle2;
@@ -225,7 +229,7 @@
   }
   function angle(cx, cy, ex, ey) {
     var dy = (ey - cy) * -1;
-    var dx = (ex - cx) * -1;
+    var dx = ex - cx;
     // more paper intuitive range calculation, instead of html position that increaeses downwards
     var theta = Math.atan2(dy, dx); // range (-PI, PI]
     return theta;
@@ -236,51 +240,72 @@
     calculateAngle(p2);
     calculateAngle(p3);
     // renderCentralPoints(triangleLine1, p4);
-    // renderCentralPoints(outGoingLine, p5);
-    // renderCentralPoints(trisector1, p6);
-    canvas.renderAll();
+    // renderCentralPoints(triangleLine2, p5);
+    // renderCentralPoints(triangleLine3, p6);
+    // canvas.renderAll();
+  }
+  function adjustThirdRad4(firstAngle, secondAngle) {
+    var diff = firstAngle - secondAngle;
+    if (diff > Math.PI) {
+      return (firstAngle + normalizeRad(diff) / 3);
+    } else if (diff > 0) {
+      var result = firstAngle - diff / 3;
+      console.table({ firstAngle, secondAngle, diff, result });
+      return result;
+    } else if (diff < -Math.PI) {
+      return normalizeRad(firstAngle - normalizeRad(diff) / 3);
+    } else {
+      return firstAngle - diff / 3;
+    }
   }
   function renderCentralPoints(line, c) {
     var { startPoint, endPoint } = line;
-    var s1 = startPoint.angle2 - endPoint.angle1 > 0; //always +-PI
-    // var s2 = startPoint.angle1 - endPoint.angle2;
-    // var s3 = startPoint.angle1 - endPoint.angle1;
-    // var s4 = startPoint.angle2 - endPoint.angle2;
-    // console.table({ s1, s2, s3, s4 });
-    var left =
-      (endPoint.top - startPoint.top) /
-      (Math.tan(adjustThirdRad(startPoint.angle1, startPoint.angle2, 2)) -
-        Math.tan(adjustThirdRad(endPoint.angle1, endPoint.angle2)));
-    var top =
-      (endPoint.left - startPoint.left) *
-      (Math.tan(adjustThirdRad(startPoint.angle1, startPoint.angle2, 2)) -
-        Math.tan(adjustThirdRad(endPoint.angle1, endPoint.angle2)));
-    // var left =
-    //   (endPoint.top - startPoint.top) /
-    //   (Math.tan(
-    //     adjustThirdRad2(s1, startPoint.angle2, startPoint.angle1, "start")
-    //   ) -
-    //     Math.tan(adjustThirdRad2(s1, endPoint.angle1, endPoint.angle2, "end")));
-    // var top =
-    //   (endPoint.left - startPoint.left) /
-    //   (Math.atan(
-    //     adjustThirdRad2(s1, startPoint.angle1, startPoint.angle2, "start")
-    //   ) -
-    //     Math.atan(
-    //       adjustThirdRad2(s1, endPoint.angle1, endPoint.angle2, "end")
-    //     ));end
-    c.set({ left, top });
-    startPoint.trisector1.set({
-      x2: left,
-      y2: top,
-      x1: startPoint.left,
-      y1: startPoint.top
-    });
-    endPoint.trisector2.set({
-      x2: left,
-      y2: top,
+    var e1 = adjustThirdRad4(endPoint.incomingAngle, endPoint.outGoingAngle);
+    var e2 = adjustThirdRad4(
+      startPoint.outGoingAngle,
+      startPoint.incomingAngle
+    );
+    var a1 = Math.tan(e1);
+    var a2 = Math.tan(e2);
+    var cos1 = Math.cos(e1);
+    var sin1 = Math.sin(e1) * -1;
+    var cos2 = Math.cos(e2);
+    var sin2 = Math.sin(e2) * -1;
+
+    endPoint.trisector1.set({
       x1: endPoint.left,
-      y1: endPoint.top
+      y1: endPoint.top,
+      x2: cos1 * 200 + endPoint.left,
+      y2: sin1 * 200 + endPoint.top
     });
+    startPoint.trisector2.set({
+      x1: startPoint.left,
+      y1: startPoint.top,
+      x2: cos2 * 200 + startPoint.left,
+      y2: sin2 * 200 + startPoint.top
+    });
+
+    // var left =
+    //   (startPoint.top - endPoint.top - a2 * (startPoint.left - endPoint.left)) /
+    //     (a2 - a1) +
+    //   startPoint.left;
+    // var top =
+    //   ((startPoint.top - endPoint.top) / a2 -
+    //     (startPoint.left - endPoint.left)) /
+    //     (1 / a1 - 1 / a2) +
+    //   startPoint.top;
+    // c.set({ left, top });
+    // startPoint.trisector2.set({
+    //   x2: left,
+    //   y2: top,
+    //   x1: startPoint.left,
+    //   y1: startPoint.top
+    // });
+    // endPoint.trisector1.set({
+    //   x2: left,
+    //   y2: top,
+    //   x1: endPoint.left,
+    //   y1: endPoint.top
+    // });
   }
 })();
