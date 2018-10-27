@@ -27,8 +27,6 @@
       textAlign: "center",
       originX: "center",
       originY: "center",
-      // fill: 'black',
-      // stroke: 'black',
       left,
       top,
       hasControls: false,
@@ -56,7 +54,7 @@
       left: 0,
       top: 0,
       strokeWidth: 5,
-      radius: 20,
+      radius: 10,
       fill: "#fff",
       stroke: "brown",
       hasControls: false,
@@ -67,7 +65,7 @@
     return c;
   }
 
-  function makeLine(coords, color = "red") {
+  function makeLine(coords, color = "red", text) {
     var a = new fabric.Line(coords, {
       fill: color,
       stroke: color,
@@ -75,16 +73,18 @@
       selectable: false,
       evented: false
     });
+
     canvas.add(a);
     return a;
   }
   function makeRandomNumber(max) {
     return Math.round(Math.random() * max);
   }
-  var a = [makeRandomNumber(800), makeRandomNumber(800)];
-  var b = [makeRandomNumber(800), makeRandomNumber(800)];
-  var c = [makeRandomNumber(800), makeRandomNumber(800)];
-  var triangleLine1 = makeLine([...a, ...b], "orange");
+  var displaySize = 600;
+  var a = [makeRandomNumber(displaySize), makeRandomNumber(displaySize)];
+  var b = [makeRandomNumber(displaySize), makeRandomNumber(displaySize)];
+  var c = [makeRandomNumber(displaySize), makeRandomNumber(displaySize)];
+  var triangleLine1 = makeLine([...a, ...b]);
   var triangleLine2 = makeLine([...b, ...c]);
   var triangleLine3 = makeLine([...c, ...a]);
   var trisector11 = makeLine([...a, ...b], "blue");
@@ -94,6 +94,9 @@
   var trisector22 = makeLine([...b, ...c], "brown");
   var trisector23 = makeLine([...c, ...a], "brown");
 
+  var equilateral1 = makeLine([...c, ...a], "orange");
+  var equilateral2 = makeLine([...c, ...a], "orange");
+  var equilateral3 = makeLine([...c, ...a], "orange");
   var p1 = makeCircle(
     triangleLine1.get("x1"),
     triangleLine1.get("y1"),
@@ -137,19 +140,6 @@
       p.outGoingLine.get("x2"),
       p.outGoingLine.get("y2")
     );
-    // console.table({ incomingAngle, outGoingAngle });
-    // p.trisector1.set({
-    //   x1: p.left,
-    //   y1: p.top,
-    //   x2: Math.cos(adjustThirdRad3(angle1, angle2)) * -1 * 200 + p.left,
-    //   y2: Math.sin(adjustThirdRad3(angle1, angle2)) * -1 * 200 + p.top
-    // });
-    // p.trisector2.set({
-    //   x1: p.left,
-    //   y1: p.top,
-    //   x2: Math.cos(adjustThirdRad3(angle1, angle2, 2)) * -1 * 200 + p.left,
-    //   y2: Math.sin(adjustThirdRad3(angle1, angle2, 2)) * -1 * 200 + p.top
-    // });
     var radDiff = normalizeRad(incomingAngle - outGoingAngle);
     p.angle0 = Math.round(toDeg(radDiff) * 10) / 10;
     p.incomingAngle = incomingAngle;
@@ -157,75 +147,12 @@
     var text = p.getObjects("text")[0];
     text.set("text", `${p.angle0.toString()}`);
   }
-  canvas.on("object:moving", function(e) {
-    // calculateAngle(e.target);
-    renderAngle();
-    // renderCentralPoints(triangleLine1, p4);
-    // renderCentralPoints(triangleLine2, p5);
-    // renderCentralPoints(triangleLine3, p6);
-    canvas.renderAll();
-  });
-  function adjustThirdRad(angle1, angle2, num = 1) {
-    var diff = angle1 - angle2;
-    if (diff > Math.PI) {
-      return biggerRad(angle1, angle2) + (normalizeRad(diff) / 3) * num;
-    } else if (diff > 0) {
-      return smallerRad(angle1, angle2) + (diff / 3) * num;
-    } else if (diff < -Math.PI) {
-      return smallerRad(angle1, angle2) - (normalizeRad(diff) / 3) * num;
-    } else {
-      return biggerRad(angle1, angle2) + (diff / 3) * num;
-    }
-  }
-  function adjustThirdRad3(angle1, angle2, num = 1) {
-    var diff = angle1 - angle2;
-    if (diff > Math.PI) {
-      return normalizeRad(
-        biggerRad(angle1, angle2) + (normalizeRad(diff) / 3) * num
-      );
-    } else if (diff > 0) {
-      return smallerRad(angle1, angle2) + (diff / 3) * num;
-    } else if (diff < -Math.PI) {
-      return normalizeRad(
-        smallerRad(angle1, angle2) - (normalizeRad(diff) / 3) * num
-      );
-    } else {
-      return biggerRad(angle1, angle2) + (diff / 3) * num;
-    }
-  }
-  function adjustThirdRad2(isRev, angle1, angle2, type) {
-    var diff = isRev ? angle1 - angle2 : angle1 - angle2;
-    if (type == "start") {
-      var num = 1;
-    } else {
-      var num = 2;
-    }
-    if (diff > Math.PI) {
-      return smallerRad(angle1, angle2) - (normalizeRad(diff) / 3) * num;
-    } else if (diff > 0) {
-      return smallerRad(angle1, angle2) + (diff / 3) * num;
-    } else if (diff < -Math.PI) {
-      return biggerRad(angle1, angle2) + (normalizeRad(diff) / 3) * num;
-    } else {
-      return biggerRad(angle1, angle2) + (diff / 3) * num;
-    }
-    // return angle2 + (diff / 3) * 2;
-  }
+
   function normalizeRad(a) {
     return a > Math.PI ? Math.PI * 2 - a : a < -Math.PI ? Math.PI * 2 + a : a;
   }
   function toDeg(rad) {
     return (rad * 180) / Math.PI;
-  }
-  function round(num, deg) {
-    var n = Math.pow(10, deg);
-    return Math.round(num * n) / n;
-  }
-  function smallerRad(a, b) {
-    return a > b ? b : a;
-  }
-  function biggerRad(a, b) {
-    return a < b ? b : a;
   }
   function angle(cx, cy, ex, ey) {
     var dy = (ey - cy) * -1;
@@ -235,6 +162,10 @@
     return theta;
   }
   renderAngle();
+  canvas.on("object:moving", function(e) {
+    renderAngle();
+    canvas.renderAll();
+  });
   function renderAngle() {
     calculateAngle(p1);
     calculateAngle(p2);
@@ -242,7 +173,23 @@
     renderCentralPoints(triangleLine1, p4);
     renderCentralPoints(triangleLine2, p5);
     renderCentralPoints(triangleLine3, p6);
+    var l1 = drawEquilateral(equilateral1, p4, p5);
+    var l2 = drawEquilateral(equilateral2, p5, p6);
+    var l3 = drawEquilateral(equilateral3, p6, p4);
+    document.querySelector("#length").innerHTML = `${l1}, ${l2}, ${l3}`;
+    // console.table({ l1, l2, l3 });
     // canvas.renderAll();
+  }
+  function drawEquilateral(line, p1, p2) {
+    var obj = { x1: p1.left, y1: p1.top, x2: p2.left, y2: p2.top };
+    line.set(obj);
+    var length1 = getLength(obj);
+    line.length1 = length1;
+    return length1;
+  }
+  function getLength(ob) {
+    var { x1, x2, y1, y2 } = ob;
+    return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
   }
   function adjustThirdRad4(firstAngle, secondAngle) {
     var diff = firstAngle - secondAngle;
@@ -250,7 +197,6 @@
       return firstAngle + normalizeRad(diff) / 3;
     } else if (diff > 0) {
       var result = firstAngle - diff / 3;
-      // console.table({ firstAngle, secondAngle, diff, result });
       return result;
     } else if (diff < -Math.PI) {
       return firstAngle - normalizeRad(diff) / 3;
@@ -267,23 +213,6 @@
     );
     var a1 = Math.tan(e2);
     var a2 = Math.tan(e1);
-    // var cos1 = Math.cos(e1);
-    // var sin1 = Math.sin(e1) * -1;
-    // var cos2 = Math.cos(e2);
-    // var sin2 = Math.sin(e2) * -1;
-
-    // endPoint.trisector1.set({
-    //   x1: endPoint.left,
-    //   y1: endPoint.top,
-    //   x2: cos1 * 200 + endPoint.left,
-    //   y2: sin1 * 200 + endPoint.top
-    // });
-    // startPoint.trisector2.set({
-    //   x1: startPoint.left,
-    //   y1: startPoint.top,
-    //   x2: cos2 * 200 + startPoint.left,
-    //   y2: sin2 * 200 + startPoint.top
-    // });
 
     var left =
       (startPoint.top - endPoint.top + a2 * (startPoint.left - endPoint.left)) /
