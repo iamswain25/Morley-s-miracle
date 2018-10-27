@@ -247,13 +247,13 @@
   function adjustThirdRad4(firstAngle, secondAngle) {
     var diff = firstAngle - secondAngle;
     if (diff > Math.PI) {
-      return (firstAngle + normalizeRad(diff) / 3);
+      return firstAngle + normalizeRad(diff) / 3;
     } else if (diff > 0) {
       var result = firstAngle - diff / 3;
       // console.table({ firstAngle, secondAngle, diff, result });
       return result;
     } else if (diff < -Math.PI) {
-      return (firstAngle - normalizeRad(diff) / 3);
+      return firstAngle - normalizeRad(diff) / 3;
     } else {
       return firstAngle - diff / 3;
     }
@@ -265,8 +265,8 @@
       startPoint.outGoingAngle,
       startPoint.incomingAngle
     );
-    var a1 = Math.tan(e1);
-    var a2 = Math.tan(e2);
+    var a1 = Math.tan(e2);
+    var a2 = Math.tan(e1);
     // var cos1 = Math.cos(e1);
     // var sin1 = Math.sin(e1) * -1;
     // var cos2 = Math.cos(e2);
