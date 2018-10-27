@@ -1,7 +1,56 @@
 (function() {
   var canvas = (this.__canvas = new fabric.Canvas("c", { selection: false }));
   fabric.Object.prototype.originX = fabric.Object.prototype.originY = "center";
+  function downloadPic() {
+    var dataURL = canvas.toDataURL();
+    download("moley_trisector_theorem.png", dataURL);
+  }
+  var download = function(filename, dataUrl) {
+    var dataURLtoBlob = function(dataurl) {
+      var parts = dataurl.split(","),
+        mime = parts[0].match(/:(.*?);/)[1];
+      if (parts[0].indexOf("base64") !== -1) {
+        var bstr = atob(parts[1]),
+          n = bstr.length,
+          u8arr = new Uint8Array(n);
+        while (n--) {
+          u8arr[n] = bstr.charCodeAt(n);
+        }
 
+        return new Blob([u8arr], { type: mime });
+      } else {
+        var raw = decodeURIComponent(parts[1]);
+        return new Blob([raw], { type: mime });
+      }
+    };
+    var element = document.createElement("a");
+
+    var dataBlob = dataURLtoBlob(dataUrl);
+    element.setAttribute("href", URL.createObjectURL(dataBlob));
+    element.setAttribute("download", filename);
+
+    element.style.display = "none";
+    document.body.appendChild(element);
+
+    element.click();
+
+    var clickHandler;
+    element.addEventListener(
+      "click",
+      (clickHandler = function() {
+        // ..and to wait a frame
+        requestAnimationFrame(function() {
+          URL.revokeObjectURL(element.href);
+        });
+
+        element.removeAttribute("href");
+        element.removeEventListener("click", clickHandler);
+      })
+    );
+
+    document.body.removeChild(element);
+  };
+  document.querySelector("#btn1").addEventListener("click", downloadPic);
   function makeCircle(
     left,
     top,
@@ -87,12 +136,12 @@
   var triangleLine1 = makeLine([...a, ...b]);
   var triangleLine2 = makeLine([...b, ...c]);
   var triangleLine3 = makeLine([...c, ...a]);
-  var trisector11 = makeLine([...a, ...b], "blue");
-  var trisector12 = makeLine([...b, ...c], "blue");
-  var trisector13 = makeLine([...c, ...a], "blue");
-  var trisector21 = makeLine([...a, ...b], "brown");
-  var trisector22 = makeLine([...b, ...c], "brown");
-  var trisector23 = makeLine([...c, ...a], "brown");
+  var trisector11 = makeLine([...a, ...b], "black");
+  var trisector12 = makeLine([...b, ...c], "black");
+  var trisector13 = makeLine([...c, ...a], "black");
+  var trisector21 = makeLine([...a, ...b], "black");
+  var trisector22 = makeLine([...b, ...c], "black");
+  var trisector23 = makeLine([...c, ...a], "black");
 
   var equilateral1 = makeLine([...c, ...a], "orange");
   var equilateral2 = makeLine([...c, ...a], "orange");
@@ -177,8 +226,6 @@
     var l2 = drawEquilateral(equilateral2, p5, p6);
     var l3 = drawEquilateral(equilateral3, p6, p4);
     document.querySelector("#length").innerHTML = `${l1}, ${l2}, ${l3}`;
-    // console.table({ l1, l2, l3 });
-    // canvas.renderAll();
   }
   function drawEquilateral(line, p1, p2) {
     var obj = { x1: p1.left, y1: p1.top, x2: p2.left, y2: p2.top };
